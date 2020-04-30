@@ -1,0 +1,378 @@
+from selenium import webdriver
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.by import By
+import time
+import json
+
+def getBaseItem(driver):
+    driver.get('https://101.qq.com/tft/index.shtml?ADTAG=cooperation.glzx.tft&type=items')
+    time.sleep(2)
+    print("基础装备爬取--------")
+    div =driver.find_elements("css selector", "#base_equip_list .item")
+    div[0].click()#定位
+    time.sleep(1)
+    minitemlen = len(div)
+    baseItemList = []
+    for i in range(0,minitemlen):
+        div[i].click()
+        time.sleep(1)
+        baseItem = {
+            "name":driver.find_elements("css selector", "#item_tab3 > div > div.g-items-right > div.items-right > div > div.item-active > p > span:nth-child(1)")[0].text,
+            "attr":driver.find_elements("css selector", "#item_tab3 > div > div.g-items-right > div.items-right > div > div.item-active > p > span:nth-child(2)")[0].text,
+            "id":driver.find_elements("css selector", "#item_tab3 > div > div.g-items-right > div.items-right > div > div.item-active > div")[0].get_attribute("data-id"),
+            "img":driver.find_elements("css selector", "#item_tab3 > div > div.g-items-right > div.items-right > div > div.item-active > div > img")[0].get_attribute("src"),
+        }
+        baseItemList.append(baseItem)
+    jsonstr = json.dumps(baseItemList,ensure_ascii=False)
+    print("爬取结果：--------")
+    print(jsonstr)
+    try:
+        f =open("./source/json/baseItem.json",'r')
+        f.close()
+    except IOError:
+        f = open("./source/json/baseItem.json",'w')
+        print("新建了文件baseItem.json")
+    f = open("./source/json/baseItem.json",'w+',encoding='utf-8')
+    f.write(jsonstr)
+    f.close()
+    print("基础装备信息保存成功")
+
+def getItem(driver):
+    driver.get('https://101.qq.com/tft/index.shtml?ADTAG=cooperation.glzx.tft&type=items')
+    time.sleep(2)
+    print("合成装备爬取--------")
+    div =driver.find_elements("css selector", "#base_form_list > .item")#获取合成装备集合html
+    div[0].click()#定位
+    time.sleep(1)
+    minitemlen = len(div)#获取集合长度
+    ItemList = []
+    for i in range(0,minitemlen):
+        div[i].click()#模拟点击
+        time.sleep(1)
+        Item = {
+            "name":driver.find_elements("css selector", "#item_tab3 > div > div.g-items-right > div.items-right > div > div.item-active > p > span:nth-child(1)")[0].text,
+            "attr":driver.find_elements("css selector", "#item_tab3 > div > div.g-items-right > div.items-right > div > div.item-active > p > span:nth-child(2)")[0].text,
+            "id":driver.find_elements("css selector", "#item_tab3 > div > div.g-items-right > div.items-right > div > div.item-active > div")[0].get_attribute("data-id"),
+            "img":driver.find_elements("css selector", "#item_tab3 > div > div.g-items-right > div.items-right > div > div.item-active > div > img")[0].get_attribute("src"),
+        }
+        ItemList.append(Item)
+    jsonstr = json.dumps(ItemList,ensure_ascii=False)#转json
+    print("爬取结果：--------")
+    print(jsonstr)
+    #写入保存
+    try:
+        f =open("./source/json/Item.json",'r')
+        f.close()
+    except IOError:
+        f = open("./source/json/Item.json",'w')
+        print("新建了文件Item.json")
+    f = open("./source/json/Item.json",'w+',encoding='utf-8')
+    f.write(jsonstr)
+    f.close()
+    print("合成装备信息保存成功")
+
+def getItem_Link(driver):
+    driver.get('https://101.qq.com/tft/index.shtml?ADTAG=cooperation.glzx.tft&type=items')
+    time.sleep(2)
+    print("合成关系爬取--------")
+    div =driver.find_elements("css selector", "#base_form_list > .item")#获取合成装备集合html
+    div[0].click()#定位
+    time.sleep(1)
+    minitemlen = len(div)#获取集合长度
+    LinkList = []
+    for i in range(0,minitemlen):
+        div[i].click()#模拟点击
+        time.sleep(1)
+        link = [
+            driver.find_elements("css selector", "#item_tab3 > div > div.g-items-right > div.items-right > div > div.table-combination > div.combination-list.scroll-list > div > div.formula > div:nth-child(1)")[0].get_attribute("data-id"),
+            driver.find_elements("css selector", "#item_tab3 > div > div.g-items-right > div.items-right > div > div.table-combination > div.combination-list.scroll-list > div > div.formula > div:nth-child(2)")[0].get_attribute("data-id"),
+            driver.find_elements("css selector", "#item_tab3 > div > div.g-items-right > div.items-right > div > div.table-combination > div.combination-list.scroll-list > div > div.compound > div")[0].get_attribute("data-id"),
+        ]
+        LinkList.append(link)
+    jsonstr = json.dumps(LinkList,ensure_ascii=False)#转json
+    print("爬取结果：--------")
+    print(jsonstr)
+    #写入保存
+    try:
+        f =open("./source/json/ItemLink.json",'r')
+        f.close()
+    except IOError:
+        f = open("./source/json/ItemLink.json",'w')
+        print("新建了文件ItemLink.json")
+    f = open("./source/json/ItemLink.json",'w+',encoding='utf-8')
+    f.write(jsonstr)
+    f.close()
+    print("装备合成关系信息保存成功")
+
+#爬取特质
+def getRace(driver):
+    driver.get('https://101.qq.com/tft/index.shtml?ADTAG=cooperation.glzx.tft&type=database2')
+    time.sleep(2)
+    print("特质爬取--------")
+    ul =driver.find_elements("css selector", "#raceDatabaseList > ul > li")#获取特质集合
+    List = []
+    for i in range(0,len(ul)):
+        name = ul[i].find_elements("css selector","div.trait-1 > div div.name")[0].text
+        img = ul[i].find_elements("css selector","div.trait-1 > div > div.pic > img")[0].get_attribute("src")
+        desc = ul[i].find_elements("css selector","div.trait-2 > div.desc")[0].text
+        Raceid =  str(img).split(".")[-2].split("/")[-1]
+        effectsList = []
+        for j in range(0,len(ul[i].find_elements("css selector","div.trait-2 > div.effects span"))):
+            num = ul[i].find_elements("css selector","div.trait-2 > div.effects span")[j].find_elements("css selector","b")[0].text
+            effect = ul[i].find_elements("css selector","div.trait-2 > div.effects span")[j].text
+            effect = effect[len(num):]
+            effectitem = {"num":num,"effect":effect}
+            effectsList.append(effectitem)
+
+        heroList = []
+        for j in range(0,len(ul[i].find_elements("css selector","div.trait-3 > div.champion-pic"))):
+            id = ul[i].find_elements("css selector","div.trait-3 > div.champion-pic")[j].find_elements("css selector","img")[0].get_attribute("data-id")
+            heroList.append(id)
+        item = {"id":Raceid,"name":name,"img":img,"desc":desc,"effectsList":effectsList,"heroList":heroList}
+        List.append(item)
+    jsonstr = json.dumps(List,ensure_ascii=False)#转json
+    print("爬取结果：--------")
+    print(jsonstr)
+    #写入保存
+    try:
+        f =open("./source/json/Race.json",'r')
+        f.close()
+    except IOError:
+        f = open("./source/json/Race.json",'w')
+        print("新建了文件Race.json")
+    f = open("./source/json/Race.json",'w+',encoding='utf-8')
+    f.write(jsonstr)
+    f.close()
+    print("特质信息保存成功")
+
+#爬取职业
+def getJob(driver):
+    driver.get('https://101.qq.com/tft/index.shtml?ADTAG=cooperation.glzx.tft&type=database3')
+    time.sleep(2)
+    print("职业爬取--------")
+    ul =driver.find_elements("css selector", "#jobDatabaseList > ul > li")#获取特质集合
+    List = []
+    for i in range(0,len(ul)):
+        name = ul[i].find_elements("css selector","div.trait-1 > div div.name")[0].text
+        img = ul[i].find_elements("css selector","div.trait-1 > div > div.pic > img")[0].get_attribute("src")
+        Jobid =  str(img).split(".")[-2].split("/")[-1]
+        desc = ul[i].find_elements("css selector","div.trait-2 > div.desc")[0].text
+
+        effectsList = []
+        for j in range(0,len(ul[i].find_elements("css selector","div.trait-2 > div.effects span"))):
+            num = ul[i].find_elements("css selector","div.trait-2 > div.effects span")[j].find_elements("css selector","b")[0].text
+            effect = ul[i].find_elements("css selector","div.trait-2 > div.effects span")[j].text
+            effect = effect[len(num):]
+            effectitem = {"num":num,"effect":effect}
+            effectsList.append(effectitem)
+
+        heroList = []
+        for j in range(0,len(ul[i].find_elements("css selector","div.trait-3 > div.champion-pic"))):
+            id = ul[i].find_elements("css selector","div.trait-3 > div.champion-pic")[j].find_elements("css selector","img")[0].get_attribute("data-id")
+            heroList.append(id)
+        item = {"id":Jobid,"name":name,"img":img,"desc":desc,"effectsList":effectsList,"heroList":heroList}
+        List.append(item)
+    jsonstr = json.dumps(List,ensure_ascii=False)#转json
+    print("爬取结果：--------")
+    print(jsonstr)
+    #写入保存
+    try:
+        f =open("./source/json/Job.json",'r')
+        f.close()
+    except IOError:
+        f = open("./source/json/Job.json",'w')
+        print("新建了文件Job.json")
+    f = open("./source/json/Job.json",'w+',encoding='utf-8')
+    f.write(jsonstr)
+    f.close()
+    print("职业信息保存成功")
+
+#爬取英雄
+def getHero(driver):
+    driver.get('https://101.qq.com/tft/index.shtml?ADTAG=cooperation.glzx.tft&type=database0')
+    time.sleep(2)
+    print("英雄爬取--------")
+    ul =driver.find_elements("css selector", "#heroOverallDatabaseList > li")#获取特质集合
+    List = []
+    for i in range(0,len(ul)):
+        name = ul[i].find_elements("css selector","div.hero-info > div.name")[0].text
+        id = ul[i].find_elements("css selector","div.hero-info > div.champion-pic > img")[0].get_attribute("data-id")
+        img = ul[i].find_elements("css selector","div.hero-info > div.champion-pic > img")[0].get_attribute("src")
+        price = ul[i].find_elements("css selector","div.hero-price > span")[0].text
+        rece = ul[i].find_elements("css selector","div:nth-child(3) > div > div.name")[0].text
+
+        #爬取英雄详细资料
+        other = getHeroDetails(driver,ul[i].find_elements("css selector","div.hero-info > div.champion-pic")[0])
+        JobList = []
+        #heroOverallDatabaseList > li:nth-child(3) > div:nth-child(4) > div:nth-child(1)
+        #heroOverallDatabaseList > li:nth-child(3) > div:nth-child(4) > div:nth-child(1) > div.name
+        for j in range(0,len(ul[i].find_elements("css selector","div:nth-child(4) > div"))):
+            job = ul[i].find_elements("css selector","div:nth-child(4) > div")[j].find_elements("css selector","div.name")[0].text
+            JobList.append(job)
+
+        item = {
+            "id":id,"name":name,"img":img,"price":price,"rece":rece,"JobList":JobList,
+            "skillname":other['skillname'],
+            "skillimg":other['skillimg'],
+            "skilldesc":other['skilldesc'],
+            "itemList":other['itemList'],
+            "attrList":other['attrList'],
+                }
+        List.append(item)
+
+    jsonstr = json.dumps(List,ensure_ascii=False)#转json
+    print("爬取结果：--------")
+    print(jsonstr)
+    #写入保存
+    try:
+        f =open("./source/json/Hero.json",'r')
+        f.close()
+    except IOError:
+        f = open("./source/json/Hero.json",'w')
+        print("新建了文件Hero.json")
+    f = open("./source/json/Hero.json",'w+',encoding='utf-8')
+    f.write(jsonstr)
+    f.close()
+    print("英雄信息保存成功")
+
+#爬取英雄个人信息
+def getHeroDetails(driver,div):
+    webdriver.ActionChains(driver).move_to_element(div)
+    div.click()
+
+    HeroDiv = driver.find_elements("css selector", "#pop1")[0]
+
+    skillname = HeroDiv.find_elements("css selector", "div.center > div.skill > div > p.name > span:nth-child(1)")[0].text
+    skillimg = HeroDiv.find_elements("css selector", "div.center > div.skill > div > img")[0].get_attribute("src")
+    skilldesc = HeroDiv.find_elements("css selector", "div.center > div.skill > div > p.description")[0].text
+
+    itemList = []
+    itemDiv = HeroDiv.find_elements("css selector", "div.left > div.recommend > div > img")
+    for i in range(0,len(itemDiv)):
+        imgsrc = itemDiv[i].get_attribute("src")
+        itemList.append(str(imgsrc).split(".")[-2].split("/")[-1])
+
+    attrList = []
+    attrDiv = HeroDiv.find_elements("css selector", "div.left > div.attribute > ul li")
+    for i in range(0,len(attrDiv)):
+        attrList.append(attrDiv[i].text)
+
+    closeBtn = driver.find_elements("css selector", "#pop1 > a")[0]
+    driver.execute_script("arguments[0].click();", closeBtn)
+    #closeBtn.click()
+    item = {
+        "skillname":skillname,
+        "skillimg":skillimg,
+        "skilldesc":skilldesc,
+        "itemList":itemList,
+        "attrList":attrList,
+    }
+    return item
+
+
+#爬取阵容
+def getSynergies(driver):
+    driver.get('https://101.qq.com/tft/index.shtml?ADTAG=cooperation.glzx.tft&type=synergies')
+    time.sleep(2)
+    while True:#跳到最下面以求获取全部阵容
+        driver.execute_script("window.scrollTo(0,document.body.scrollHeight)")
+        height1 = driver.execute_script("return document.body.scrollHeight;")
+        time.sleep(2)
+        height2 = driver.execute_script("return document.body.scrollHeight;")
+        if height1 == height2:
+            break
+
+    print("阵容爬取--------")
+    div =driver.find_elements("css selector", "#recommendSynergies > div.group-box > div > div")
+
+    resultList = []
+    for i in range(0,len(div)):
+        print("进度"+str(i)+"/"+str(len(div)))
+        name = div[i].find_elements("css selector", "div.tier.tier1 > div.info > p")[0].text
+
+        #获取完整阵容(英雄，装备，站位)
+        championsList = []
+        championsDiv = div[i].find_elements("css selector", "div.tier.tier1 > div.champions > div")
+        for j in range(0,len(championsDiv)):
+            #获取完整阵容的英雄id
+            cid = championsDiv[j].find_elements("css selector", "div.champion-pic > img")[0].get_attribute("data-id")
+            #获取英雄装备集合
+            ItemDiv = championsDiv[j].find_elements("css selector", "div.cost-skills > img")
+            itemList = []
+            for k in range(0,len(ItemDiv)):
+                itemid = ItemDiv[k].get_attribute("data-id")
+                itemList.append(itemid)
+
+            #获取英雄站位
+            stanceList = []
+            stanceDiv = div[i].find_elements("css selector", "div.tier.tier3 > div.stance > img")
+            for k in range(0,len(stanceDiv)):
+                if cid == stanceDiv[k].get_attribute("data-id"):
+                    classname = stanceDiv[k].get_attribute("class")
+                    stanceList =str(classname).split("position")[1].split("-")
+            item = {"id":cid,"itemList":itemList,"stanceList":stanceList}
+            championsList.append(item)
+
+        #获取前期阵容
+        earlierDiv = div[i].find_elements("css selector", "div.tier.tier2 > div.earlier > div")
+        earlierList = []
+        for j in range(0,len(earlierDiv)):
+            #获取完整阵容的英雄id
+            eid = earlierDiv[j].find_elements("css selector", "div.champion-pic > img")[0].get_attribute("data-id")
+            earlierList.append(eid)
+
+        #获取中期阵容
+        interimDiv = div[i].find_elements("css selector", "div.tier.tier2 > div.interim > div")
+        interimList = []
+        for j in range(0,len(interimDiv)):
+            #获取中期阵容的英雄id
+            iid = interimDiv[j].find_elements("css selector", "div.champion-pic > img")[0].get_attribute("data-id")
+            interimList.append(iid)
+
+        traitsDiv = div[i].find_elements("css selector", "div.tier.tier3 > div.traits > div")
+        traitsList = []
+        for j in range(0,len(traitsDiv)):
+            #获取中期阵容的英雄id
+            trait = traitsDiv[j].find_elements("css selector", "span")[0].text
+            traitsList.append(trait)
+
+        explainDiv = div[i].find_elements("css selector", "div.tier.tier2 > div.explain")[0]
+        # webdriver.ActionChains(driver).move_to_element(explainDiv)
+        driver.execute_script("arguments[0].click();", explainDiv)
+
+        explainList = []
+        explainitemDiv = driver.find_elements("css selector", "body > div.explain-box.show > div")
+        for j in range(0,len(explainitemDiv)):
+            title = explainitemDiv[j].find_element("css selector","p.title").text
+            description = explainitemDiv[j].find_element("css selector","p.description").text
+            explain ={title:description}
+            explainList.append(explain)
+
+        synergy ={"name":name,"championsList":championsList,"earlierList":earlierList,"interimList":interimList,"traitsList":traitsList,"explainList":explainList}
+        resultList.append(synergy)
+    jsonstr = json.dumps(resultList,ensure_ascii=False)#转json
+    print("爬取结果：--------")
+    print(jsonstr)
+    #写入保存
+    try:
+        f =open("./source/json/synergy.json",'r')
+        f.close()
+    except IOError:
+        f = open("./source/json/synergy.json",'w')
+        print("新建了文件synergy.json")
+    f = open("./source/json/synergy.json",'w+',encoding='utf-8')
+    f.write(jsonstr)
+    f.close()
+    print("阵容信息保存成功")
+
+
+if __name__ == '__main__':
+    driver = webdriver.Chrome(executable_path="C:\FTF_Tool\chromedriver.exe")
+    # getBaseItem(driver)
+    # getItem(driver)
+    getItem_Link(driver)
+    # getRace(driver)
+    # getJob(driver)
+    # getHero(driver)
+    # getSynergies(driver)
+    driver.quit()
